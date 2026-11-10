@@ -1,0 +1,33 @@
+name: Build LowFPSMode ReShade add-on
+
+on:
+  workflow_dispatch:
+  push:
+    branches: [ main, master ]
+
+jobs:
+  build:
+    runs-on: windows-latest
+    steps:
+      - name: Check out project
+        uses: actions/checkout@v4
+
+      - name: Check out ReShade headers
+        uses: actions/checkout@v4
+        with:
+          repository: crosire/reshade
+          path: external/reshade
+          fetch-depth: 1
+
+      - name: Configure x64 build
+        run: cmake -S . -B build -A x64 -DRESHADE_INCLUDE_DIR="${{ github.workspace }}\\external\\reshade\\include"
+
+      - name: Compile Release add-on
+        run: cmake --build build --config Release
+
+      - name: Upload compiled add-on
+        uses: actions/upload-artifact@v4
+        with:
+          name: LowFPSMode-addon64
+          path: build/Release/LowFPSMode.addon64
+          if-no-files-found: error
